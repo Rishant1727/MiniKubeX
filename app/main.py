@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.runtime.docker_runtime import DockerRuntime
 from app.api.scheduler_api import router as scheduler_router
 from app.api.controller_api import router as controller_router
+from fastapi import BackgroundTasks
 
 app = FastAPI(
     title="MiniKubeX",

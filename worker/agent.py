@@ -5,14 +5,14 @@ import psutil
 from fastapi import FastAPI
 
 from worker.docker_runtime import WorkerDockerRuntime
-
+from health.monitor import HealthMonitor
 
 app = FastAPI(title="MiniKubeX Worker")
 
 WORKER_ID = socket.gethostname()
 
 docker_runtime = WorkerDockerRuntime()
-
+health_monitor = HealthMonitor()
 
 @app.get("/")
 def root():
@@ -51,3 +51,24 @@ def create_container(image: str, name: str):
         image=image,
         name=name
     )
+
+@app.get("/health/containers")
+def container_health():
+
+    containers = docker_runtime.client.containers.list(
+        all=True
+    )
+
+    results = []
+
+    for container in containers:
+
+        health = health_monitor.check_container(
+            container
+        )
+
+        results.append(
+            health.model_dump()
+        )
+
+    return results

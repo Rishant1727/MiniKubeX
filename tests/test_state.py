@@ -37,3 +37,33 @@ def test_cluster_state_removes_container():
     assert state.get_replica_count(
         "payment-api"
     ) == 0
+
+def test_cluster_state_counts_healthy_replicas():
+
+    state = ClusterState()
+
+    state.add_container(
+        "payment-api",
+        "container-1",
+        healthy=True
+    )
+
+    state.add_container(
+        "payment-api",
+        "container-2",
+        healthy=False
+    )
+
+    state.add_container(
+        "payment-api",
+        "container-3",
+        healthy=True
+    )
+
+    assert state.get_replica_count(
+        "payment-api"
+    ) == 3
+
+    assert state.get_healthy_replica_count(
+        "payment-api"
+    ) == 2
