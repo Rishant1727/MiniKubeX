@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.runtime.docker_runtime import DockerRuntime
+from app.api.scheduler_api import router as scheduler_router
 
 
 app = FastAPI(
@@ -9,6 +10,8 @@ app = FastAPI(
 )
 
 runtime = DockerRuntime()
+
+app.include_router(scheduler_router)
 
 
 @app.get("/")
