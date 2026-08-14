@@ -5,6 +5,9 @@ from app.api.controller_api import router as controller_router
 from fastapi import BackgroundTasks
 from app.api.cluster_api import router as cluster_router
 from app.api.service_api import router as service_router
+from app.api.deployment_api import (
+    router as deployment_router
+)
 
 app = FastAPI(
     title="MiniKubeX",
@@ -18,6 +21,7 @@ app.include_router(scheduler_router)
 app.include_router(controller_router)
 app.include_router(cluster_router)
 app.include_router(service_router)
+app.include_router(deployment_router)
 
 @app.get("/")
 def root():
