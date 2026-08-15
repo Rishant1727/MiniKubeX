@@ -10,4 +10,5 @@ class ServiceInstance(BaseModel):
 
 class Service(BaseModel):
     name: str
+    deployment_name: str | None = None
     instances: list[ServiceInstance] = []

@@ -1,4 +1,9 @@
 from fastapi import APIRouter, HTTPException
+from app.runtime.docker_runtime import DockerRuntime
+
+from cluster.service_controller import (
+    ServiceController
+)
 
 from cluster.models.service import (
     Service,
@@ -25,6 +30,13 @@ load_balancer = (
     RoundRobinLoadBalancer(
         service_registry
     )
+)
+
+runtime = DockerRuntime()
+
+service_controller = ServiceController(
+    runtime=runtime,
+    registry=service_registry
 )
 
 
@@ -83,6 +95,32 @@ def get_service(
 
     return service
 
+@router.post(
+    "/{service_name}/sync/{deployment_name}"
+)
+def sync_service(
+    service_name: str,
+    deployment_name: str
+):
+
+    service = service_controller.sync_service(
+        service_name=service_name,
+        deployment_name=deployment_name
+    )
+
+    return {
+        "status": "synced",
+        "service": service.name,
+        "instances": [
+            {
+                "instance_id": instance.instance_id,
+                "host": instance.host,
+                "port": instance.port,
+                "healthy": instance.healthy
+            }
+            for instance in service.instances
+        ]
+    }
 
 @router.get(
     "/{service_name}/route"
@@ -108,3 +146,4 @@ def route_request(
         "host": instance.host,
         "port": instance.port
     }
+    

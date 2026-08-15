@@ -4,6 +4,8 @@ from scheduler.scheduler import Scheduler
 from scheduler.models.node import Node
 from scheduler.models.workload import Workload
 
+from app.api.cluster_api import registry
+
 
 router = APIRouter(
     prefix="/scheduler",
@@ -18,32 +20,40 @@ def schedule_workload(
     workload: Workload
 ):
 
-    nodes = [
+    # -------------------------------------------------
+    # Get actual workers from WorkerRegistry
+    # -------------------------------------------------
 
-        Node(
-            id="worker-1",
-            cpu_capacity=8,
-            memory_capacity=16,
-            cpu_used=4,
-            memory_used=6
-        ),
+    workers = registry.get_healthy_workers()
 
-        Node(
-            id="worker-2",
-            cpu_capacity=8,
-            memory_capacity=16,
-            cpu_used=1,
-            memory_used=2
-        ),
+    # -------------------------------------------------
+    # Convert WorkerNode → Scheduler Node
+    # -------------------------------------------------
 
-        Node(
-            id="worker-3",
-            cpu_capacity=4,
-            memory_capacity=8,
-            cpu_used=3,
-            memory_used=6
+    nodes = []
+
+    for worker in workers:
+
+        node = Node(
+            id=worker.worker_id,
+
+            cpu_capacity=worker.cpu_capacity,
+
+            memory_capacity=worker.memory_capacity,
+
+            # Scheduler currently does not have
+            # persistent resource usage tracking,
+            # so start with zero usage.
+            cpu_used=0,
+
+            memory_used=0
         )
-    ]
+
+        nodes.append(node)
+
+    # -------------------------------------------------
+    # Schedule workload
+    # -------------------------------------------------
 
     selected_node = scheduler.schedule(
         nodes,
@@ -54,7 +64,7 @@ def schedule_workload(
 
         return {
             "status": "failed",
-            "message": "No suitable worker found"
+            "message": "No suitable healthy worker found"
         }
 
     return {
